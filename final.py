@@ -354,31 +354,35 @@ def load_news(url):
     return df
 
 @st.cache_data
-def news_work(df_ai, ticker):
+def news_work(df_ai, ticker, start_date, end_date):
     # data_ranges 만드는 작업
     df = df_ai.copy()
     df['phase_change'] = df['Phase'] != df['Phase'].shift(1)
     df['new_block_id'] = df['phase_change'].cumsum()
     df.index = pd.to_datetime(df.index)
 
-    ranges_df = df.reset_index().groupby('new_block_id')['Date'].agg(['min', 'max']).sort_values('min')
-    date_ranges = [
-        (start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d')) 
-        for start, end in zip(ranges_df['min'], ranges_df['max'])
-    ]
+    try:
+        ranges_df = df.reset_index().groupby('new_block_id')['Date'].agg(['min', 'max']).sort_values('min')
+        date_ranges = [
+            (start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d')) 
+            for start, end in zip(ranges_df['min'], ranges_df['max'])
+        ]
+    except:
+        return
 
     url = None
-    if ticker == "005930":
-        condensed = []
-        for i in range(21):
-            url = f"https://raw.githubusercontent.com/minjun069/DartB/main/Samsung_condensed_{i}.csv"
-            cond_df = load_news(url)
-            condensed.append(cond_df)
-        return [condensed, date_ranges]
-    elif ticker == "011200":
-        url = "https://raw.githubusercontent.com/minjun069/DartB/main/HMM_all.csv"
-    elif ticker == "068270":
-        url = "https://raw.githubusercontent.com/minjun069/DartB/main/Celltrion_all.csv"
+    if (start_date == pd.to_datetime("2024-01-01")) and (end_date == pd.to_datetime("2024-12-31")):
+        if ticker == "005930":
+            condensed = []
+            for i in range(21):
+                url = f"https://raw.githubusercontent.com/minjun069/DartB/main/Samsung_condensed_{i}.csv"
+                cond_df = load_news(url)
+                condensed.append(cond_df)
+            return [condensed, date_ranges]
+        elif ticker == "011200":
+            url = "https://raw.githubusercontent.com/minjun069/DartB/main/HMM_all.csv"
+        elif ticker == "068270":
+            url = "https://raw.githubusercontent.com/minjun069/DartB/main/Celltrion_all.csv"
     
     if url:
         full_news = load_news(url)
@@ -399,7 +403,9 @@ def news_work2(condensed, news_idx):
     return news
 
 @st.cache_data
-def total_news_work(ticker):
+def total_news_work(ticker, start_date, end_date):
+    if not ((start_date == pd.to_datetime("2024-01-01")) and (end_date == pd.to_datetime("2024-12-31"))):
+        return
     url = None
     if ticker == "011200":
         url = "https://raw.githubusercontent.com/minjun069/DartB/main/HMM_total_news.csv"
@@ -1203,7 +1209,7 @@ def render_analysis(page_id):
 
             st.markdown("<br>", unsafe_allow_html=True)
 
-            total_news = total_news_work(ticker)
+            total_news = total_news_work(ticker, start_date, end_date)
             st.altair_chart(visualize_phases_altair_all_interactions(df_ai, total_news), use_container_width=True)
 
             if total_news is not None and not total_news.empty:
@@ -1220,7 +1226,8 @@ def render_analysis(page_id):
             st.markdown("---")
 
             with st.expander("구간 별 뉴스"):
-                news_work_li = news_work(df_ai, ticker)
+                news_work_li = news_work(df_ai, ticker, start_date, end_date)
+                
                 if news_work_li:
                     condensed = news_work_li[0]
                     date_ranges = news_work_li[1]
@@ -1240,6 +1247,8 @@ def render_analysis(page_id):
                         },
                         use_container_width=True
                     )
+                else:
+                    st.text("데이터 베이스 작업 중 입니다.")
 
     with tab3:
         with st.container(border=True, key="analysis_container3_1"):
