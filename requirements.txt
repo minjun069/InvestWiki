@@ -1,0 +1,15 @@
+streamlit
+pandas
+numpy
+finance-datareader
+yfinance
+matplotlib
+koreanize-matplotlib
+scipy
+ta
+altair
+requests
+beautifulsoup4
+st-clickable-images
+google-generativeai>=0.5.0
+scikit-learn
