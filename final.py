@@ -975,15 +975,49 @@ def render_home():
     col_news, col_pop = st.columns([1.2, 1])
 
     with col_news:
+        if "news_page" not in st.session_state:
+            st.session_state.news_page = 0
+        news_data = get_popular_news()
+
+        ITEMS_PER_PAGE = 3
+
+        start_idx = st.session_state.news_page * ITEMS_PER_PAGE
+        end_idx = start_idx + ITEMS_PER_PAGE
         # [구조 변경] HTML 조립 대신 st.container 사용
         with st.container(border=True, key="pop_card_container1"):
-            st.markdown("""
-            <div class="card-title" style="margin-bottom:0;">
-                <span class="icon-box icon-news">📰</span> 실시간 증시 뉴스
-            </div>
-            """, unsafe_allow_html=True)
+            col_text, col_prev, col_page, col_next = st.columns([3.5, 0.5, 0.5, 0.5])
+
+            with col_text:
+                st.markdown("""
+                <div class="card-title" style="margin-bottom:0;">
+                    <span class="icon-box icon-news">📰</span> 실시간 증시 뉴스
+                </div>
+                """, unsafe_allow_html=True)
+                             
+            with col_prev:
+                # 첫 페이지가 아닐 때만 '이전' 버튼 표시
+                if st.session_state.news_page > 0:
+                    if st.button("◀", key="prev_news", use_container_width=True):
+                        st.session_state.news_page -= 1
+                        st.rerun()
+                
+            with col_page:
+                # 현재 페이지 표시 (예: 1 / 3)
+                total_pages = math.ceil(len(news_data) / ITEMS_PER_PAGE)
+                st.markdown(
+                    f"<div style='text-align:center; color:#999; font-size:0.8rem; padding-top:5px;'>"
+                    f"{st.session_state.news_page + 1} / {total_pages}</div>", 
+                    unsafe_allow_html=True
+                )
+
+            with col_next:
+                # 다음 데이터가 있을 때만 '다음' 버튼 표시
+                if end_idx < len(news_data):
+                    if st.button("▶", key="next_news", use_container_width=True):
+                        st.session_state.news_page += 1
+                        st.rerun()
+                        
             
-            news_data = get_popular_news()
             
             # 내용물 출력
             if not news_data:
@@ -994,19 +1028,28 @@ def render_home():
                 </div>
                 """, unsafe_allow_html=True)
             else:
-                # 리스트 아이템 반복 출력
-                # st.container 안에서는 st.markdown을 반복해서 써도 레이아웃이 안 깨집니다.
-                for n in news_data[:3]:
+
+                # (안전장치) 데이터가 갱신되어 페이지가 범위를 넘어가면 초기화
+                if start_idx >= len(news_data):
+                    st.session_state.news_page = 0
+                    start_idx = 0
+                    end_idx = ITEMS_PER_PAGE
+
+                # 3. 현재 페이지에 해당하는 뉴스만 출력 (슬라이싱)
+                current_news = news_data[start_idx:end_idx]
+                
+                for n in current_news:
                     st.markdown(f"""
                     <div class="news-item" style="padding:10px 0; border-bottom:1px solid #f9f9f9;">
                         <a href="{n['link']}" target="_blank" class="news-title" style="text-decoration:none; color:#333; font-weight:600; display:block; margin-bottom:4px;">
                             {n['title']}
                         </a>
-                        <div class="news-meta" style="font-size:0.8rem; color:#999;">
+                    <div class="news-meta" style="font-size:0.8rem; color:#999;">
                             {n['desc']}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
+
 
     with col_pop:
         # 2. 컨테이너 시작
