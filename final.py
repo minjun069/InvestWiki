@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import FinanceDataReader as fdr
-import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 import math
 import altair as alt
@@ -20,6 +19,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from typing import List, Dict
 from st_clickable_images import clickable_images
+import time
 
 # =========================
 # 1. 페이지 설정 & 전역 스타일
@@ -1430,7 +1430,7 @@ def render_sidebar():
                 st.session_state.menu_key += 1
                 st.rerun()
 
-def render_floating_chatbot():
+def render_floating_chatbot2():
 
     if "is_chat_open" not in st.session_state:
             st.session_state.is_chat_open = False
@@ -1509,6 +1509,166 @@ def render_floating_chatbot():
             st.session_state.messages.append({"role":"assistant", "content":ans})
             msgs.chat_message("assistant").write(ans)
 
+def render_floating_chatbot():
+
+    if "is_chat_open" not in st.session_state:
+            st.session_state.is_chat_open = False
+
+    image_url = "https://cdn-icons-png.flaticon.com/512/4712/4712109.png"
+    chatbot_img_base64 = get_image_base64_from_url(image_url)
+
+    # 대화 기록 초기화
+    if "messages" not in st.session_state:
+        st.session_state.messages = [{"role": "assistant", "content": "안녕하세요! 무엇을 도와드릴까요? 🤖"}]
+
+    # 챗봇 플로팅 버튼 스타일 (CSS)
+    st.markdown(f"""
+        <div class="chatbot-visual"></div>
+        <style>
+        .chatbot-visual {{
+            position: fixed !important;
+            bottom: 30px !important;
+            right: 30px !important;
+            width: 70px !important;
+            height: 70px !important;
+            z-index: 999998 !important;
+            background-image: url('{chatbot_img_base64}') !important;
+            background-size: 60% !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            background-color: #5D87FF !important;
+            border-radius: 50% !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+            pointer-events: none !important;
+        }}
+        div[data-testid="stPopover"] {{
+            position: fixed !important;
+            bottom: 30px !important;
+            right: 30px !important;
+            z-index: 999999 !important;
+            width: 70px !important;
+            height: 70px !important;
+            opacity: 0 !important;
+            font-size: 40px !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }}
+        </style>
+        """, unsafe_allow_html=True)
+    
+    # 팝오버(채팅창) UI
+    with st.popover(""):
+        # 버튼: 이용TIP
+        col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 1])
+        with col_btn1:
+            st.markdown("### 🤖 투자 비서")
+            st.caption("궁금한 점을 물어보세요.")
+        with col_btn3:
+            st.markdown(" ")
+            st.markdown(" ")
+            st.markdown(" ")
+            if st.button("💡 이용TIP", use_container_width=True):
+                st.session_state.messages.append({"role": "user", "content": "이용TIP 알려줘"})
+                tip_msg = (
+                    "**[투자위키 이용 TIP]**\n\n"
+                    "1️⃣ **검색하기**: 홈 화면 중앙 검색창에 종목명(예: 삼성전자)이나 티커(예: 005930)를 입력하세요.\n\n"
+                    "2️⃣ **차트 분석**: 검색 후 나오는 대시보드에서 '캔들 차트', '기술적 지표' 등을 선택해 분석해보세요.\n\n"
+                    "3️⃣ **AI 진단**: '추세 구간화' 탭을 누르면 AI가 현재 주가의 상승/하락/박스권 추세를 진단해줍니다.\n\n"
+                    "4️⃣ **사이드바 활용**: 왼쪽 사이드바(집 모양 아이콘)를 통해 언제든 홈으로 돌아가거나 분석 리포트를 관리할 수 있습니다."
+                )
+                st.session_state.messages.append({"role": "assistant", "content": tip_msg})
+                st.rerun()
+
+        # 대화 내용 출력
+        msgs = st.container(height=400)
+        for m in st.session_state.messages:
+            msgs.chat_message(m["role"]).write(m["content"])
+
+        # 사용자 입력 처리
+        if prompt := st.chat_input("질문 입력..."):
+            st.session_state.messages.append({"role":"user", "content":prompt})
+            msgs.chat_message("user").write(prompt)
+            
+            # --- [핵심] 챗봇 응답 로직 (트리거 기능 포함) ---
+            response_content = ""
+            trigger_search = None
+            
+            # 1. 특정 종목 검색 트리거
+            if "삼성전자" in prompt:
+                response_content = "삼성전자 분석 페이지로 이동합니다! 🚀"
+                trigger_search = "삼성전자"
+            elif "셀트리온" in prompt:
+                response_content = "셀트리온 분석 페이지로 이동합니다! 🚀"
+                trigger_search = "셀트리온"
+            elif "hmm" in prompt.lower():
+                response_content = "HMM 분석 페이지로 이동합니다! 🚀"
+                trigger_search = "HMM"
+            
+            # 2. 용어 설명 (캔들 차트, 박스권)
+            elif "캔들차트" in prompt:
+                response_content = (
+                    "**🕯️ 캔들 차트(Candlestick Chart)란?** \n\n"
+                    "주가의 시가(시작), 고가(최고), 저가(최저), 종가(마감)를 "
+                    "양초 모양으로 그려낸 차트입니다.\n\n"
+                    "- **빨간색(양봉)** : 시가보다 종가가 오름 (상승)\n"
+                    "- **파란색(음봉)** : 시가보다 종가가 내림 (하락)\n\n"
+                    "시장의 흐름을 한눈에 파악하기 좋습니다!"
+                )
+            elif "박스권" in prompt:
+                response_content = (
+                    "**📦 박스권(Box Pattern)이란?** \n\n"
+                    "주가가 일정한 가격 폭 안에서만 오르내리는 상태를 말합니다.\n\n"
+                    "마치 박스 안에 갇힌 것처럼, 바닥(지지선)을 치면 오르고 "
+                    "천장(저항선)을 치면 다시 내려가는 횡보 구간입니다."
+                )
+            
+            # 3. 추가 꿀팁 4가지 (기간, 매매, AI, 삭제)
+            elif "기간" in prompt or "날짜" in prompt:
+                response_content = (
+                    "**📅 분석 기간 변경 팁** \n\n"
+                    "종목을 검색한 후, 대시보드 차트 바로 위에 있는\n\n"
+                    "**'시작일'** 과 **'종료일'** 입력창을 이용해보세요!\n\n"
+                    "원하는 기간(예: 최근 3개월, 작년 1년 등)을 자유롭게 설정하여\n\n"
+                    "더 정밀한 분석이 가능합니다. 설정 후 **'조회'** 버튼을 꼭 눌러주세요."
+                )
+            elif "매수" in prompt or "매도" in prompt or "타이밍" in prompt:
+                response_content = (
+                    "**⚡ 매매 타이밍 잡기 (참고용)** \n\n"
+                    "'기술적 지표' 탭을 활용해 보세요!\n\n"
+                    "1. **RSI 지표** : 30 이하이면 '과매도(너무 많이 팔림 → 반등 가능성)', 70 이상이면 '과매수' 구간일 수 있습니다.\n\n"
+                    "2. **볼린저 밴드** : 주가가 밴드 하단에 닿으면 매수, 상단에 닿으면 매도를 고려하는 전략이 있습니다.\n\n"
+                    "※ 단, 이는 보조 지표일 뿐 절대적인 정답은 아닙니다!"
+                )
+            elif "AI" in prompt and ("원리" in prompt or "분석" in prompt):
+                response_content = (
+                    "**🤖 AI 추세 분석의 비밀** \n\n"
+                    "제가 제공하는 'AI 추세 구간화'는 단순한 상승/하락 판단이 아닙니다.\n\n"
+                    "1. 주가의 미세한 떨림(노이즈)을 제거하는 **스무딩(Smoothing)** 과정을 거칩니다.\n\n"
+                    "2. 그 후 그래프의 기울기를 수학적으로 계산하여 추세를 판단합니다.\n\n"
+                    "3. 마지막으로 가격이 갇혀있는 **박스권** 을 별도 알고리즘으로 찾아냅니다."
+                )
+            elif "삭제" in prompt or "초기화" in prompt:
+                response_content = (
+                    "**🗑️ 리포트 정리 방법** \n\n"
+                    "분석한 종목이 너무 많아 지저분한가요?\n\n"
+                    "- **개별 삭제** : 왼쪽 사이드바 목록에서 종목 이름 옆 **'X'** 버튼을 누르세요.\n\n"
+                    "- **전체 초기화** : 사이드바 맨 하단에 있는 **'모든 페이지 초기화'** 버튼을 누르면 깔끔하게 정리됩니다."
+                )
+            
+            # 4. 그 외 질문
+            else:
+                response_content = "죄송합니다. 아직 학습 중인 AI라 해당 질문에 대한 답변 기능이 연동되지 않았습니다. 😅"
+
+            # 답변 저장 및 출력
+            st.session_state.messages.append({"role":"assistant", "content":response_content})
+            msgs.chat_message("assistant").write(response_content)
+
+            # 검색 트리거가 있다면 페이지 이동 실행 (UX를 위해 약간 지연)
+            if trigger_search:
+                time.sleep(1.0)
+                searching_func(trigger_search, st.session_state.current_page_id)
+
+
 # =========================
 # 6. 메인 실행 루프
 # =========================
@@ -1536,5 +1696,4 @@ elif st.session_state.current_page_id == "AI":
     render_aipage()
 else:
     render_analysis(st.session_state.current_page_id)
-
     render_floating_chatbot()
