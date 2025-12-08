@@ -486,11 +486,11 @@ def get_phase_bar_html(up, down, box):
         margin-bottom: 20px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     ">
-        <div style="width: 33%; background-color: #C24E42; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+        <div style="width: 33%; background-color: #5D7AE2; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
             <div style="font-weight: 700; font-size: 15px; margin-bottom: 2px;">↗ 상승</div>
             <div style="font-size: 12px; opacity: 0.9;">{up}일</div>
         </div>
-        <div style="width: 33%; background-color: #5D7AE2; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+        <div style="width: 33%; background-color: #C24E42; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
             <div style="font-weight: 700; font-size: 15px; margin-bottom: 2px;">↓ 하락</div>
             <div style="font-size: 12px; opacity: 0.9;">{down}일</div>
         </div>
@@ -1536,4 +1536,5 @@ elif st.session_state.current_page_id == "AI":
     render_aipage()
 else:
     render_analysis(st.session_state.current_page_id)
+
     render_floating_chatbot()
