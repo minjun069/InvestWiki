@@ -22,7 +22,7 @@ from st_clickable_images import clickable_images
 import time
 
 # =========================
-# 페이지 설정 & 전역 스타일
+# 1. 페이지 설정 & 전역 스타일
 # =========================
 st.set_page_config(
     page_title="투자위키 - InvestWiki",
@@ -751,8 +751,8 @@ def visualize_phases_altair_all_interactions(df, pinpoints_df):
     
         if not phase_blocks.empty:
             # 1. 색상 매핑 정의 (이게 없어서 색이 맘대로 나옴)
-            domain = ['하락', '상승', '박스권'] 
-            range_ = ["#f77777", "#84b4fd", '#ffffff'] # 빨강, 파랑, 회색
+            domain = ['상승','하락','박스권'] 
+            range_ = [ "#84b4fd", "#f77777", '#ffffff'] # 빨강, 파랑, 회색
 
             phase_blocks_empty = False
             background = alt.Chart(phase_blocks).mark_rect(opacity=0.15).encode(
@@ -1296,7 +1296,7 @@ def render_analysis(page_id):
     with tab3:
         with st.container(border=True, key="analysis_container3_1"):
             # 1. 볼린저 밴드
-            st.markdown("##### 볼린저 밴드 (Bollinger Bands)")
+            st.markdown("##### 1. 볼린저 밴드 (Bollinger Bands)")
             with st.expander("📖 볼린저 밴드가 뭔가요?"):
                 st.info("""
                 **이동평균선을 기준으로 주가의 등락 범위를 표준편차로 계산해 표시한 지표입니다.**
@@ -1309,7 +1309,7 @@ def render_analysis(page_id):
         
         # 2. RSI
         with st.container(border=True, key="analysis_container3_2"):
-            st.markdown("##### RSI (상대강도지수)")
+            st.markdown("##### 2. RSI (상대강도지수)")
             with st.expander("📖 RSI가 뭔가요?"):
                 st.info("""
                 **일정 기간 동안 주가가 전일 대비 얼마나 상승했는지를 백분율(%)로 나타낸 지표입니다.**
@@ -1814,5 +1814,4 @@ elif st.session_state.current_page_id == "AI":
     render_aipage()
 else:
     render_analysis(st.session_state.current_page_id)
-
     render_floating_chatbot()
