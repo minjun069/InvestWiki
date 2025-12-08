@@ -1309,7 +1309,7 @@ def render_aipage():
     st.caption("궁금한 점을 물어보세요.")
     
     if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": "안녕하세요! 투자 도우미입니다."}]
+        st.session_state.messages = [{"role": "assistant", "content": "안녕하세요! 무엇을 도와드릴까요?ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ"}]
 
     msgs = st.container(height=570)
     for m in st.session_state.messages:
@@ -1515,7 +1515,7 @@ def render_floating_chatbot2():
 
     # 2. 세션 상태 초기화
     if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": "안녕하세요! 무엇을 도와드릴까요?"}]
+        st.session_state.messages = [{"role": "assistant", "content": "안녕하세요! 무엇을 도와드릴까요?ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ"}]
 
     st.markdown(f"""
     <div class="chatbot-visual"></div>
@@ -1569,7 +1569,7 @@ def render_floating_chatbot2():
         st.caption("궁금한 점을 물어보세요.")
         
         if "messages" not in st.session_state:
-            st.session_state.messages = [{"role": "assistant", "content": "안녕하세요! 투자 도우미입니다."}]
+            st.session_state.messages = [{"role": "assistant", "content": "안녕하세요! 무엇을 도와드릴까요?ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ"}]
 
         msgs = st.container(height=300)
         for m in st.session_state.messages:
@@ -1594,7 +1594,7 @@ def render_floating_chatbot():
 
     # 대화 기록 초기화
     if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": "안녕하세요! 무엇을 도와드릴까요? 🤖"}]
+        st.session_state.messages = [{"role": "assistant", "content": "안녕하세요! 무엇을 도와드릴까요?ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ"}]
 
     # 챗봇 플로팅 버튼 스타일 (CSS)
     st.markdown(f"""
